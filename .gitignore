@@ -1,5 +1,5 @@
-# Logs
-logs
+# Logs and build artifacts
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,27 +7,51 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-electron
-release
-out
+node_modules/
+dist/
+dist-electron/
+release/
+out/
+build/
+.cache/
 
 # OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
-# Environment variables
+# Environment variables, API credentials, and secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+*credential*
+*secret*
+*token*
+api_key*
+*apikey*
 
-# Editor directories and files
+# AI tools, agent artifacts, and assistants metadata
+.omc/
+.gemini/
+.claude/
+.cursor/
+.windsurf/
+.copilot/
+.chatgpt/
+.agent/
+.agents/
+.idea/
 .vscode/*
 !.vscode/extensions.json
-.idea
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Markdown and notes / documentation files (ignoring all .md files)
+*.md
