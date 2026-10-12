@@ -53,5 +53,6 @@ api_key*
 *.sln
 *.sw?
 
-# Markdown and notes / documentation files (ignoring all .md files)
+# Markdown and notes / documentation files (ignoring all .md files except project README)
 *.md
+!README.md
