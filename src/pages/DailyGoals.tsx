@@ -110,11 +110,17 @@ export const DailyGoals: React.FC<DailyGoalsProps> = ({
             {editingTarget ? (
               <div className="flex items-center space-x-2">
                 <input
-                  type="number"
-                  step="0.50"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
                   value={targetInput}
-                  onChange={(e) => setTargetInput(e.target.value)}
-                  className="w-24 bg-black/60 border border-white/20 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:outline-none"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.]/g, '');
+                    const parts = val.split('.');
+                    const clean = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : val;
+                    setTargetInput(clean);
+                  }}
+                  className="w-24 bg-black/60 border border-white/20 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:outline-none cursor-text select-text"
                 />
                 <button
                   onClick={handleSaveTarget}

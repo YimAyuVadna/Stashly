@@ -45,6 +45,15 @@ html.dark {
     transition: background-color 0.25s ease, color 0.25s ease;
   }
 
+  /* Ensure all form inputs, textareas, and editable fields have normal text selection and typing */
+  input,
+  textarea,
+  select,
+  [contenteditable="true"] {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
+
   /* Universal outline and focus kill - removes box outline flash on tab clicks */
   *,
   *::before,
@@ -298,6 +307,7 @@ html:not(.dark) {
   .bg-black {
     background-color: #f3f4f6 !important;
   }
+  header .bg-black\/40,
   .sq-card .bg-\[\#050608\],
   .sq-card .bg-\[\#0b0c10\],
   .sq-card .bg-black\/60,

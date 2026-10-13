@@ -1,4 +1,5 @@
 import { api } from '../../electron/preload';
+import { WishlistItem } from '../types';
 
 declare global {
   interface Window {
@@ -7,7 +8,12 @@ declare global {
 }
 
 // In-memory fallback mock for browser-based dev testing when run outside Electron
-const memoryStore = {
+const memoryStore: {
+  settings: any;
+  presets: any[];
+  wishlist: WishlistItem[];
+  transactions: any[];
+} = {
   settings: {
     id: 1,
     currency_code: 'USD',

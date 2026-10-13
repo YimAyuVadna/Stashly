@@ -204,14 +204,19 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
                 Target Savings Goal ($) *
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0.01"
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
                 value={targetAmountStr}
-                onChange={(e) => setTargetAmountStr(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.]/g, '');
+                  const parts = val.split('.');
+                  const clean = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : val;
+                  setTargetAmountStr(clean);
+                }}
                 placeholder="200.00"
                 required
-                className="w-full bg-black/60 border border-white/10 focus:border-white/30 rounded-2xl px-4 py-2.5 text-[15px] font-semibold text-white focus:outline-none"
+                className="w-full bg-black/60 border border-white/10 focus:border-white/30 rounded-2xl px-4 py-2.5 text-[15px] font-semibold text-white focus:outline-none cursor-text select-text"
               />
             </div>
             <div>
@@ -219,12 +224,18 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
                 Market Price ($) (Optional)
               </label>
               <input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
                 value={currentPriceStr}
-                onChange={(e) => setCurrentPriceStr(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.]/g, '');
+                  const parts = val.split('.');
+                  const clean = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : val;
+                  setCurrentPriceStr(clean);
+                }}
                 placeholder="249.00"
-                className="w-full bg-black/60 border border-white/10 focus:border-white/30 rounded-2xl px-4 py-2.5 text-[13px] text-white focus:outline-none"
+                className="w-full bg-black/60 border border-white/10 focus:border-white/30 rounded-2xl px-4 py-2.5 text-[13px] text-white focus:outline-none cursor-text select-text"
               />
             </div>
           </div>

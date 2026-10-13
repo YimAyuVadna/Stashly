@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, QuickSavePreset } from '../types';
 import { parseToCents } from '../utils/calculations';
 import { clientApi } from '../services/clientApi';
@@ -161,11 +161,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               Daily Saving Target ($)
             </label>
             <input
-              type="number"
-              step="0.50"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
               value={dailyGoalStr}
-              onChange={(e) => setDailyGoalStr(e.target.value)}
-              className="w-full bg-[#050608] border border-white/10 rounded-2xl px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-white/30"
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, '');
+                const parts = val.split('.');
+                const clean = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : val;
+                setDailyGoalStr(clean);
+              }}
+              className="w-full bg-[#050608] border border-white/10 rounded-2xl px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-white/30 cursor-text select-text"
             />
           </div>
 
@@ -174,11 +180,17 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               Weekly Saving Target ($)
             </label>
             <input
-              type="number"
-              step="1.00"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
               value={weeklyGoalStr}
-              onChange={(e) => setWeeklyGoalStr(e.target.value)}
-              className="w-full bg-[#050608] border border-white/10 rounded-2xl px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-white/30"
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, '');
+                const parts = val.split('.');
+                const clean = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : val;
+                setWeeklyGoalStr(clean);
+              }}
+              className="w-full bg-[#050608] border border-white/10 rounded-2xl px-4 py-2.5 text-sm font-semibold text-white focus:outline-none focus:border-white/30 cursor-text select-text"
             />
           </div>
         </div>

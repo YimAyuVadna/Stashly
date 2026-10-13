@@ -1,5 +1,4 @@
 import React from 'react';
-import stashlyLogo from '../../assets/logo.png';
 import {
   House,
   Heart,
@@ -53,21 +52,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }`}
       >
         <div>
-          {/* Brand Header with custom Stashly App Logo */}
-          <div className="p-6 flex items-center justify-between border-b border-white/[0.05]">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-1.5 shadow-inner overflow-hidden">
-                <img
-                  src={stashlyLogo}
-                  alt="Stashly"
-                  className="w-full h-full object-contain filter drop-shadow-[0_2px_8px_rgba(16,185,129,0.35)]"
-                />
-              </div>
-              <div>
-                <h1 className="font-editorial text-lg tracking-tight font-semibold text-white leading-tight">
-                  Stashly
-                </h1>
-              </div>
+          {/* Brand Header */}
+          <div className="px-6 py-5 flex items-center justify-between border-b border-white/[0.05]">
+            <div>
+              <h1 className="font-editorial text-2xl tracking-tight font-normal text-white leading-none">
+                Stashly.
+              </h1>
+              <p className="text-[11px] text-neutral-400 font-sans tracking-normal mt-1.5">
+                Wealth Architecture & Savings
+              </p>
             </div>
 
             {/* Mobile Close Button */}

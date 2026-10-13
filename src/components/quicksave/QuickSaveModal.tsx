@@ -241,23 +241,29 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
                 Amount ($)
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-semibold text-[15px]">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500 font-semibold text-[15px] pointer-events-none select-none z-10">
                   $
                 </span>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
                   value={customAmountStr}
-                  onChange={(e) => setCustomAmountStr(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.]/g, '');
+                    const parts = val.split('.');
+                    const clean = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : val;
+                    setCustomAmountStr(clean);
+                    setError(null);
+                  }}
                   placeholder="0.00"
                   required
-                  className="w-full bg-black/60 border border-white/10 focus:border-white/30 rounded-2xl pl-8 pr-4 py-3 text-[17px] font-semibold text-white focus:outline-none"
+                  className="w-full bg-black/60 border border-white/10 focus:border-white/30 rounded-2xl pl-9 pr-4 py-3 text-[17px] font-semibold text-white focus:outline-none cursor-text select-text"
                 />
               </div>
             </div>
 
-            {/* Date & Note - No e.g. text */}
+            {/* Date & Note */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] uppercase tracking-wider font-medium text-neutral-400 mb-1.5">
@@ -267,7 +273,7 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
                   type="date"
                   value={dateStr}
                   onChange={(e) => setDateStr(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-4 py-2 text-[12px] text-white focus:outline-none focus:border-white/30"
+                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-4 py-2 text-[12px] text-white focus:outline-none focus:border-white/30 cursor-pointer"
                 />
               </div>
               <div>
@@ -276,10 +282,11 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
                 </label>
                 <input
                   type="text"
+                  autoComplete="off"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="Daily savings deposit"
-                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-4 py-2 text-[12px] text-white focus:outline-none focus:border-white/30"
+                  className="w-full bg-black/60 border border-white/10 rounded-2xl px-4 py-2 text-[12px] text-white focus:outline-none focus:border-white/30 cursor-text select-text"
                 />
               </div>
             </div>
