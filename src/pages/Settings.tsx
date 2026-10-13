@@ -2,13 +2,6 @@ import React, { useState } from 'react';
 import { Settings, QuickSavePreset } from '../types';
 import { parseToCents } from '../utils/calculations';
 import { clientApi } from '../services/clientApi';
-import {
-  Save,
-  Download,
-  Upload,
-  ShieldCheck,
-  Coins,
-} from 'lucide-react';
 
 interface SettingsPageProps {
   settings: Settings;
@@ -27,6 +20,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 }) => {
   const [currency, setCurrency] = useState(settings.currency_code || 'USD');
   const [theme, setTheme] = useState(settings.theme || 'dark');
+  const [weekStartDay, setWeekStartDay] = useState<number>(settings.week_start_day ?? 1);
   const [dailyGoalStr, setDailyGoalStr] = useState(
     (settings.daily_goal_amount / 100).toFixed(2)
   );
@@ -35,11 +29,20 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   );
   const [message, setMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    setCurrency(settings.currency_code || 'USD');
+    setTheme(settings.theme || 'dark');
+    setWeekStartDay(settings.week_start_day ?? 1);
+    setDailyGoalStr((settings.daily_goal_amount / 100).toFixed(2));
+    setWeeklyGoalStr((settings.weekly_goal_amount / 100).toFixed(2));
+  }, [settings]);
+
   const handleSaveGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
     await onUpdateSettings({
       currency_code: currency,
       theme: theme as any,
+      week_start_day: weekStartDay,
       daily_goal_amount: parseToCents(dailyGoalStr),
       weekly_goal_amount: parseToCents(weeklyGoalStr),
     });
@@ -95,12 +98,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         onSubmit={handleSaveGeneral}
         className="sq-card p-8 space-y-6"
       >
-        <div className="flex items-center space-x-3 pb-4 border-b border-white/[0.05]">
-          <Coins className="w-5 h-5 text-emerald-400" />
+        <div className="pb-4 border-b border-white/[0.05]">
           <h3 className="font-editorial text-xl font-normal text-white">Financial Targets.</h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div>
             <label className="block text-[11px] uppercase tracking-wider font-medium text-neutral-400 mb-1.5">
               Active Currency
@@ -125,12 +127,30 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
             </label>
             <select
               value={theme}
-              onChange={(e) => setTheme(e.target.value as any)}
+              onChange={async (e) => {
+                const val = e.target.value as any;
+                setTheme(val);
+                await onUpdateSettings({ theme: val });
+              }}
               className="w-full bg-[#050608] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/30"
             >
-              <option value="dark">Studio OLED Dark (Default)</option>
-              <option value="light">Light Theme</option>
+              <option value="dark">Studio OLED Dark</option>
+              <option value="light">Editorial Warm Light</option>
               <option value="system">Follow System Theme</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[11px] uppercase tracking-wider font-medium text-neutral-400 mb-1.5">
+              Week Starts On
+            </label>
+            <select
+              value={weekStartDay}
+              onChange={(e) => setWeekStartDay(Number(e.target.value))}
+              className="w-full bg-[#050608] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/30"
+            >
+              <option value={1}>Monday (Resets Sun 23:59)</option>
+              <option value={0}>Sunday (Resets Sat 23:59)</option>
             </select>
           </div>
         </div>
@@ -165,17 +185,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
 
         <button
           type="submit"
-          className="flex items-center space-x-2 px-6 py-2.5 rounded-full bg-white text-black text-xs font-semibold transition hover:bg-neutral-200 active:scale-95 shadow-lg shadow-white/5"
+          className="px-6 py-2.5 rounded-full bg-white text-black text-xs font-semibold transition hover:bg-neutral-200 active:scale-95 shadow-lg shadow-white/5"
         >
-          <Save className="w-4 h-4" />
-          <span>Save Changes</span>
+          Save Changes
         </button>
       </form>
 
       {/* Backup and Restore Management */}
       <div className="sq-card p-8 space-y-5">
-        <div className="flex items-center space-x-3 pb-4 border-b border-white/[0.05]">
-          <ShieldCheck className="w-5 h-5 text-teal-400" />
+        <div className="pb-4 border-b border-white/[0.05]">
           <h3 className="font-editorial text-xl font-normal text-white">Local Data Security & Vault.</h3>
         </div>
         <p className="text-xs text-neutral-400 leading-relaxed">
@@ -185,17 +203,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <button
             onClick={handleCreateBackup}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs font-semibold border border-white/10 transition"
+            className="px-5 py-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs font-semibold border border-white/10 transition"
           >
-            <Download className="w-4 h-4 text-emerald-400" />
-            <span>Create Database Backup (.db)</span>
+            Create Database Backup (.db)
           </button>
           <button
             onClick={handleRestoreBackup}
-            className="flex items-center space-x-2 px-5 py-2.5 rounded-full border border-amber-500/30 hover:bg-amber-500/10 text-amber-300 text-xs font-semibold transition"
+            className="px-5 py-2.5 rounded-full border border-amber-500/30 hover:bg-amber-500/10 text-amber-300 text-xs font-semibold transition"
           >
-            <Upload className="w-4 h-4" />
-            <span>Restore From Backup File</span>
+            Restore From Backup File
           </button>
         </div>
       </div>

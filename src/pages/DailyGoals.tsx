@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   format,
   startOfWeek,
@@ -7,7 +7,7 @@ import {
   isToday,
   isSameDay,
 } from 'date-fns';
-import { Target, Zap, Award } from 'lucide-react';
+import { Zap, Award } from 'lucide-react';
 import { Settings, Transaction } from '../types';
 import { formatCurrency, toLocalDateString } from '../utils/calculations';
 
@@ -26,8 +26,27 @@ export const DailyGoals: React.FC<DailyGoalsProps> = ({
 }) => {
   const [editingTarget, setEditingTarget] = useState(false);
   const [targetInput, setTargetInput] = useState((settings.daily_goal_amount / 100).toFixed(2));
+  const [currentDate, setCurrentDate] = useState(() => new Date());
 
-  const todayStr = toLocalDateString(new Date());
+  useEffect(() => {
+    // Check every 10 seconds and on window focus/visibility to automatically reset
+    // when local midnight / end of week passes without requiring an app reload
+    const interval = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 10000);
+
+    const handleWake = () => setCurrentDate(new Date());
+    window.addEventListener('focus', handleWake);
+    document.addEventListener('visibilitychange', handleWake);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleWake);
+      document.removeEventListener('visibilitychange', handleWake);
+    };
+  }, []);
+
+  const todayStr = toLocalDateString(currentDate);
 
   // Today's contributions
   const todaySaved = transactions
@@ -39,9 +58,10 @@ export const DailyGoals: React.FC<DailyGoalsProps> = ({
   const todayProgress = dailyTarget > 0 ? Math.round((todaySaved / dailyTarget) * 1000) / 10 : 0;
   const isGoalReached = todaySaved >= dailyTarget;
 
-  // Weekly Goal Calculation
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: (settings.week_start_day as 0 | 1) || 1 });
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: (settings.week_start_day as 0 | 1) || 1 });
+  // Weekly Goal Calculation in local time
+  const weekStartDay = (settings.week_start_day === 0 ? 0 : 1) as 0 | 1;
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: weekStartDay });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: weekStartDay });
   const daysOfWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
   const weekDaysData = daysOfWeek.map((dayDate) => {
@@ -55,7 +75,7 @@ export const DailyGoals: React.FC<DailyGoalsProps> = ({
       dateStr: dStr,
       saved: daySaved,
       reached: daySaved >= dailyTarget,
-      isToday: isSameDay(dayDate, new Date()),
+      isToday: isSameDay(dayDate, currentDate),
     };
   });
 
@@ -77,18 +97,13 @@ export const DailyGoals: React.FC<DailyGoalsProps> = ({
       {/* Daily Target Hero Card */}
       <div className="sq-card p-8 sm:p-12 relative overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-emerald-400">
-              <Target className="w-7 h-7" />
-            </div>
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-emerald-400">
-                Daily Ritual & Mission
-              </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-white tracking-tight mt-1">
-                Save {formatCurrency(dailyTarget)} Today.
-              </h2>
-            </div>
+          <div>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-emerald-400">
+              Daily Ritual & Mission
+            </span>
+            <h2 className="font-editorial text-3xl sm:text-4xl font-normal text-white tracking-tight mt-1">
+              Save {formatCurrency(dailyTarget)} Today.
+            </h2>
           </div>
 
           <div className="flex items-center space-x-3">

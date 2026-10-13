@@ -45,6 +45,43 @@ export const App: React.FC = () => {
   // Mobile / responsive sidebar toggle
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  // Active theme tracking ('dark' or 'light')
+  const [effectiveTheme, setEffectiveTheme] = useState<'dark' | 'light'>('dark');
+
+  useEffect(() => {
+    const applyTheme = () => {
+      const selected = settings?.theme || 'dark';
+      let eff: 'dark' | 'light' = 'dark';
+      if (selected === 'system') {
+        eff = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      } else {
+        eff = selected;
+      }
+      setEffectiveTheme(eff);
+      const root = document.documentElement;
+      root.classList.remove('dark', 'light');
+      root.classList.add(eff);
+      root.style.colorScheme = eff;
+    };
+
+    applyTheme();
+
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = () => {
+      if (settings?.theme === 'system') {
+        applyTheme();
+      }
+    };
+    mql.addEventListener('change', handleSystemChange);
+    return () => mql.removeEventListener('change', handleSystemChange);
+  }, [settings?.theme]);
+
+  const handleToggleTheme = async () => {
+    const nextTheme = effectiveTheme === 'dark' ? 'light' : 'dark';
+    await clientApi.updateSettings({ theme: nextTheme });
+    setSettings((prev) => (prev ? { ...prev, theme: nextTheme } : prev));
+  };
+
   // Load all data
   const loadData = async () => {
     try {
@@ -76,6 +113,32 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     loadData();
+
+    // Check for midnight rollover in local time so daily and weekly metrics refresh automatically
+    let lastDate = toLocalDateString(new Date());
+    const interval = setInterval(() => {
+      const cur = toLocalDateString(new Date());
+      if (cur !== lastDate) {
+        lastDate = cur;
+        loadData();
+      }
+    }, 10000);
+
+    const handleFocus = () => {
+      const cur = toLocalDateString(new Date());
+      if (cur !== lastDate) {
+        lastDate = cur;
+        loadData();
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
   }, [selectedYear]);
 
   // Handle Quick Save Transaction Creation
@@ -201,7 +264,9 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#050505] text-[#F3F4F6] font-sans relative selection:bg-emerald-500 selection:text-black">
+    <div className={`flex h-screen w-screen overflow-hidden font-sans relative selection:bg-emerald-500 selection:text-black ${
+      effectiveTheme === 'dark' ? 'bg-[#050505] text-[#F3F4F6]' : 'bg-[#F8F9FA] text-[#111827]'
+    }`}>
       {/* Background ambient lighting orbs (Floria aesthetic) */}
       <div className="botanic-glow w-[500px] h-[500px] bg-emerald-600 top-[-100px] right-[-100px]" />
       <div className="botanic-glow w-[400px] h-[400px] bg-teal-700 bottom-[-50px] left-[200px]" />
@@ -225,6 +290,8 @@ export const App: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative z-10">
         <Navbar
           title={getPageTitle()}
+          isDark={effectiveTheme === 'dark'}
+          onToggleTheme={handleToggleTheme}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
 
@@ -236,6 +303,7 @@ export const App: React.FC = () => {
                 summary={dashboardSummary}
                 recentTransactions={transactions.slice(0, 8)}
                 activeWishlist={wishlistItems.filter((w) => w.status === 'active').slice(0, 6)}
+                allWishlist={wishlistItems}
                 onOpenQuickSave={openQuickSave}
                 onNavigate={(page) => setCurrentPage(page)}
                 onSelectWishlist={(item) => {

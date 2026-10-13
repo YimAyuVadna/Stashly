@@ -169,16 +169,24 @@ export const clientApi = {
   },
   getTransactions: async (filter?: any) => {
     if (window.electronAPI) return window.electronAPI.getTransactions(filter);
-    return memoryStore.transactions;
+    return memoryStore.transactions.map((t) => {
+      const goal = memoryStore.wishlist.find((w) => w.id === t.goal_id);
+      return {
+        ...t,
+        goal_name: goal ? goal.name : t.goal_name,
+        goal_image: goal ? goal.image_path : (t as any).goal_image,
+      };
+    });
   },
   createTransaction: async (data: any) => {
     if (window.electronAPI) return window.electronAPI.createTransaction(data);
-    const goal = memoryStore.wishlist.find(w => w.id === data.goal_id);
+    const goal = memoryStore.wishlist.find((w) => w.id === data.goal_id);
     const id = 'tx-' + Date.now().toString(36);
     const newTx = {
       ...data,
       id,
       goal_name: goal ? goal.name : 'General Savings',
+      goal_image: goal ? goal.image_path : undefined,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -227,7 +235,14 @@ export const clientApi = {
         todayProgress: Math.round((todaySaved / memoryStore.settings.daily_goal_amount) * 1000) / 10,
       },
       savingDates,
-      recentTransactions: memoryStore.transactions.slice(0, 8),
+      recentTransactions: memoryStore.transactions.slice(0, 8).map((t) => {
+        const goal = memoryStore.wishlist.find((w) => w.id === t.goal_id);
+        return {
+          ...t,
+          goal_name: goal ? goal.name : t.goal_name,
+          goal_image: goal ? goal.image_path : (t as any).goal_image,
+        };
+      }),
       activeWishlist: memoryStore.wishlist.filter(w => w.status === 'active').slice(0, 6),
     };
   },

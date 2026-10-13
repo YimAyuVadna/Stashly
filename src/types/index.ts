@@ -33,6 +33,7 @@ export interface Transaction {
   id: string;
   goal_id?: string | null; // null for general savings
   goal_name?: string | null; // joined
+  goal_image?: string | null; // joined
   type: TransactionType;
   amount: number; // in cents
   currency_code: string;

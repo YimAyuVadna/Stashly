@@ -163,7 +163,22 @@ export const TransactionsPage: React.FC<TransactionsPageProps> = ({
                       {t.transaction_date}
                     </td>
                     <td className="px-6 py-4 text-white font-medium whitespace-nowrap">
-                      {t.goal_name || 'General Savings Reserve'}
+                      <div className="flex items-center space-x-2.5">
+                        {(() => {
+                          const itemImage =
+                            t.goal_image ||
+                            (t.goal_id ? wishlistItems.find((w) => w.id === t.goal_id)?.image_path : null) ||
+                            (t.goal_name ? wishlistItems.find((w) => w.name === t.goal_name)?.image_path : null);
+                          return itemImage ? (
+                            <img
+                              src={itemImage}
+                              alt={t.goal_name || 'Item'}
+                              className="w-7 h-7 rounded-lg object-cover border border-white/10 shrink-0"
+                            />
+                          ) : null;
+                        })()}
+                        <span>{t.goal_name || 'General Savings Reserve'}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-neutral-400 max-w-xs truncate">
                       {t.note || '—'}

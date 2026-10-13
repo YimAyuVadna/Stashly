@@ -2,16 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-app: #f8f9fa;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f3f4f6;
+  --bg-surface: #ffffff;
+  --text-main: #111827;
+  --text-muted: #4b5563;
+  --text-dim: #6b7280;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --input-bg: #f8f9fa;
+  --input-border: rgba(0, 0, 0, 0.12);
+  --input-text: #111827;
+}
+
+html.dark {
+  --bg-app: #050505;
+  --bg-card: #090a0f;
+  --bg-card-subtle: #0b0c10;
+  --bg-surface: #0c0d12;
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --input-bg: #050608;
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-text: #ffffff;
+}
+
 @layer base {
   body {
     user-select: none;
     -webkit-user-select: none;
     overflow-x: hidden;
-    background-color: #050505;
-    color: #f3f4f6;
+    background-color: var(--bg-app);
+    color: var(--text-main);
     font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
     letter-spacing: -0.015em;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   /* Universal outline and focus kill - removes box outline flash on tab clicks */
@@ -114,5 +145,282 @@
   100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ========================================================================= */
+/* Editorial Warm Ivory & Ceramic Light Theme Overrides (High Contrast)     */
+/* ========================================================================= */
+
+html:not(.dark) {
+  /* Surfaces and Card Backgrounds */
+  .bg-\[\#050505\],
+  .bg-\[\#050608\],
+  .bg-\[\#0c0d12\],
+  .bg-\[\#0b0c10\],
+  .bg-\[\#07080b\],
+  .bg-\[\#090a0f\],
+  .bg-\[\#07080b\]\/70,
+  .bg-\[\#07080b\]\/90,
+  .bg-\[\#0c0d12\]\/80 {
+    background-color: #ffffff !important;
+  }
+
+  .bg-\[\#0c0d12\] {
+    background-color: #ffffff !important;
+  }
+
+  /* Modal backdrop */
+  .bg-black\/60,
+  .bg-black\/80 {
+    background-color: rgba(15, 23, 42, 0.45) !important;
+  }
+
+  /* Text colors: Crisp high-contrast Obsidian & Slate */
+  .text-white {
+    color: #111827 !important;
+  }
+  .text-neutral-200 {
+    color: #1f2937 !important;
+  }
+  .text-neutral-300 {
+    color: #374151 !important;
+  }
+  .text-neutral-400 {
+    color: #4b5563 !important;
+  }
+  .text-neutral-500 {
+    color: #6b7280 !important;
+  }
+
+  /* Borders */
+  .border-white\/10,
+  .border-white\/15,
+  .border-white\/20,
+  .border-white\/30,
+  .border-white\/\[0\.08\],
+  .border-white\/\[0\.07\],
+  .border-white\/\[0\.06\],
+  .border-white\/\[0\.05\],
+  .border-white\/\[0\.04\],
+  .border-white\/\[0\.03\] {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .divide-white\/\[0\.04\],
+  .divide-white\/\[0\.05\] > * + * {
+    border-color: rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Form Inputs, Selects, and Textareas */
+  input,
+  select,
+  textarea {
+    background-color: #f8f9fa !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    color: #111827 !important;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: rgba(16, 185, 129, 0.6) !important;
+    background-color: #ffffff !important;
+  }
+
+  /* Tints, badges, and soft surfaces */
+  .bg-white\/\[0\.02\],
+  .bg-white\/\[0\.03\],
+  .bg-white\/\[0\.04\],
+  .bg-white\/\[0\.05\],
+  .bg-white\/\[0\.06\],
+  .bg-white\/\[0\.08\],
+  .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+
+  .hover\:bg-white\/\[0\.02\]:hover,
+  .hover\:bg-white\/\[0\.03\]:hover,
+  .hover\:bg-white\/\[0\.06\]:hover,
+  .hover\:bg-white\/5:hover,
+  .hover\:bg-white\/10:hover {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+  }
+
+  /* Action Buttons: Dark Obsidian pills with white text for luxury contrast */
+  button.bg-white,
+  .bg-white.text-black {
+    background-color: #111827 !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25) !important;
+  }
+  button.bg-white:hover,
+  .bg-white.text-black:hover {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+  }
+  button.bg-white .bg-black\/10,
+  .bg-white.text-black .bg-black\/10 {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+  }
+  button.bg-white svg.fill-black,
+  .bg-white.text-black svg.fill-black {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+  }
+
+  /* Outline buttons */
+  .border-white\/10 {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Ceramic Cards & Double Bezel */
+  .sq-card {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02) !important;
+  }
+  .double-bezel {
+    background: #fdfdfd !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+  .bezel-core {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* Image Placeholders and Ceramic insets */
+  .bg-black {
+    background-color: #f3f4f6 !important;
+  }
+  .sq-card .bg-\[\#050608\],
+  .sq-card .bg-\[\#0b0c10\],
+  .sq-card .bg-black\/60,
+  .sq-card .bg-black\/70,
+  .sq-card .bg-black\/80 {
+    background-color: #f8f9fa !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* Badges and pills */
+  span.bg-black\/80,
+  span.bg-black\/70 {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    color: #111827 !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+  }
+  .border-t-\[\#0c0d12\] {
+    border-top-color: #ffffff !important;
+  }
+
+  /* High contrast accent text in light mode */
+  .text-emerald-400 {
+    color: #059669 !important;
+  }
+  .text-emerald-300 {
+    color: #047857 !important;
+  }
+  .text-teal-400 {
+    color: #0d9488 !important;
+  }
+  .text-amber-400 {
+    color: #b45309 !important;
+  }
+  .text-red-400 {
+    color: #dc2626 !important;
+  }
+  .text-red-300 {
+    color: #b91c1c !important;
+  }
+
+  /* Alert and Status Banners */
+  .bg-emerald-950\/20,
+  .bg-emerald-950\/30,
+  .bg-emerald-950\/40 {
+    background-color: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+    color: #065f46 !important;
+  }
+  .bg-red-950\/20,
+  .bg-red-950\/40,
+  .bg-red-950\/60 {
+    background-color: #fef2f2 !important;
+    border-color: #fecaca !important;
+    color: #991b1b !important;
+  }
+
+  /* Sidebar Active Navigation Item */
+  aside nav button.bg-white\/\[0\.08\] {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+    color: #065f46 !important;
+  }
+  aside nav button.bg-white\/\[0\.08\] span {
+    color: #065f46 !important;
+  }
+
+  /* Table head */
+  thead,
+  thead.bg-\[\#050608\] {
+    background-color: #f8f9fa !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+  }
+
+  /* Recharts */
+  .recharts-default-tooltip {
+    background-color: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    color: #111827 !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  }
+  .recharts-tooltip-item,
+  .recharts-tooltip-item-name,
+  .recharts-tooltip-item-value {
+    color: #111827 !important;
+  }
+  .recharts-tooltip-label {
+    color: #4b5563 !important;
+  }
+  .recharts-cartesian-grid line {
+    stroke: rgba(0, 0, 0, 0.06) !important;
+  }
+  .recharts-cartesian-axis-tick text {
+    fill: #6b7280 !important;
+  }
+
+  /* Heatmap Cells */
+  .bg-emerald-800\/40 {
+    background-color: #a7f3d0 !important;
+    border-color: #6ee7b7 !important;
+  }
+  .bg-emerald-600\/50 {
+    background-color: #6ee7b7 !important;
+    border-color: #34d399 !important;
+  }
+  .bg-emerald-500\/80 {
+    background-color: #10b981 !important;
+    border-color: #059669 !important;
+  }
+  .bg-emerald-400 {
+    background-color: #059669 !important;
+    border-color: #047857 !important;
+  }
+
+  /* Ambient glow */
+  .botanic-glow {
+    opacity: 0.03 !important;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15) !important;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25) !important;
   }
 }

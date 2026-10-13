@@ -1,14 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  Fire,
   PiggyBank,
-  Target,
-  CalendarCheck,
-  CheckCircle,
   ArrowUpRight,
   Lightning,
-  Sparkle,
-  TrendUp,
 } from '@phosphor-icons/react';
 import { formatCurrency, calculateDaysRemaining } from '../utils/calculations';
 import { DashboardSummary, WishlistItem, Transaction } from '../types';
@@ -27,6 +21,7 @@ interface DashboardProps {
   summary: DashboardSummary;
   recentTransactions: Transaction[];
   activeWishlist: WishlistItem[];
+  allWishlist?: WishlistItem[];
   onOpenQuickSave: (goalId?: string) => void;
   onNavigate: (page: string) => void;
   onSelectWishlist: (item: WishlistItem) => void;
@@ -36,6 +31,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   summary,
   recentTransactions,
   activeWishlist,
+  allWishlist,
   onOpenQuickSave,
   onNavigate,
   onSelectWishlist,
@@ -94,12 +90,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-emerald-500/15 via-teal-600/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl">
-          {/* Eyebrow Pill */}
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-white/[0.05] border border-white/10 text-emerald-400 text-[11px] font-medium tracking-[0.18em] uppercase mb-6 backdrop-blur-md">
-            <Sparkle size={12} weight="fill" className="text-emerald-400" />
-            <span>Curated Capital • {summary.currentStreak} Day Discipline Streak</span>
-          </div>
-
           {/* Big Editorial Serif Title */}
           <h1 className="font-editorial text-4xl sm:text-5xl lg:text-6xl font-normal tracking-tight text-white leading-[1.08]">
             Wealth Architecture. <br />
@@ -135,11 +125,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Card 1: Total Saved */}
         <div className="gsap-dash-item double-bezel">
           <div className="bezel-core p-6 flex flex-col justify-between h-full">
-            <div className="flex items-center justify-between text-neutral-400 text-xs font-medium">
+            <div className="text-neutral-400 text-xs font-medium">
               <span className="uppercase tracking-[0.15em] text-[10px]">Accumulated Capital</span>
-              <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center text-emerald-400">
-                <PiggyBank size={15} weight="duotone" />
-              </div>
             </div>
             <div className="mt-5">
               <h3 className="font-editorial text-3xl font-normal text-white tracking-tight">
@@ -155,11 +142,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Card 2: Remaining Target */}
         <div className="gsap-dash-item double-bezel">
           <div className="bezel-core p-6 flex flex-col justify-between h-full">
-            <div className="flex items-center justify-between text-neutral-400 text-xs font-medium">
+            <div className="text-neutral-400 text-xs font-medium">
               <span className="uppercase tracking-[0.15em] text-[10px]">Distance to Completion</span>
-              <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center text-teal-400">
-                <Target size={15} weight="duotone" />
-              </div>
             </div>
             <div className="mt-5">
               <h3 className="font-editorial text-3xl font-normal text-white tracking-tight">
@@ -175,11 +159,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Card 3: Saved This Month */}
         <div className="gsap-dash-item double-bezel">
           <div className="bezel-core p-6 flex flex-col justify-between h-full">
-            <div className="flex items-center justify-between text-neutral-400 text-xs font-medium">
+            <div className="text-neutral-400 text-xs font-medium">
               <span className="uppercase tracking-[0.15em] text-[10px]">Current Month</span>
-              <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center text-sky-400">
-                <CalendarCheck size={15} weight="duotone" />
-              </div>
             </div>
             <div className="mt-5">
               <h3 className="font-editorial text-3xl font-normal text-white tracking-tight">
@@ -195,11 +176,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Card 4: Daily Mission */}
         <div className="gsap-dash-item double-bezel">
           <div className="bezel-core p-6 flex flex-col justify-between h-full">
-            <div className="flex items-center justify-between text-neutral-400 text-xs font-medium">
+            <div className="text-neutral-400 text-xs font-medium">
               <span className="uppercase tracking-[0.15em] text-[10px]">Today's Target</span>
-              <div className="w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center text-amber-400">
-                <CheckCircle size={15} weight="duotone" />
-              </div>
             </div>
             <div className="mt-5">
               <h3 className="font-editorial text-3xl font-normal text-white tracking-tight">
@@ -424,37 +402,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         <div className="divide-y divide-white/[0.04]">
-          {recentTransactions.map((tx) => (
-            <div key={tx.id} className="py-3.5 flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-3.5">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] ${
-                    tx.type === 'contribution'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+          {recentTransactions.map((tx) => {
+            const list = allWishlist || activeWishlist;
+            const itemImage =
+              tx.goal_image ||
+              (tx.goal_id ? list.find((w) => w.id === tx.goal_id)?.image_path : null) ||
+              (tx.goal_name ? list.find((w) => w.name === tx.goal_name)?.image_path : null);
+
+            return (
+              <div key={tx.id} className="py-3.5 flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-black border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                    {itemImage ? (
+                      <img
+                        src={itemImage}
+                        alt={tx.goal_name || 'Item'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <PiggyBank size={18} weight="duotone" className="text-neutral-500" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-white tracking-tight">
+                      {tx.goal_name || 'General Capital Reserve'}
+                    </p>
+                    <p className="text-[11px] text-neutral-400">
+                      {tx.transaction_date} {tx.note ? `• "${tx.note}"` : ''}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`font-semibold tracking-tight ${
+                    tx.type === 'contribution' ? 'text-emerald-400' : 'text-amber-400'
                   }`}
                 >
                   {tx.type === 'contribution' ? '+' : '-'}
-                </div>
-                <div>
-                  <p className="font-medium text-white tracking-tight">
-                    {tx.goal_name || 'General Capital Reserve'}
-                  </p>
-                  <p className="text-[11px] text-neutral-400">
-                    {tx.transaction_date} {tx.note ? `• "${tx.note}"` : ''}
-                  </p>
-                </div>
+                  {formatCurrency(tx.amount)}
+                </span>
               </div>
-              <span
-                className={`font-semibold tracking-tight ${
-                  tx.type === 'contribution' ? 'text-emerald-400' : 'text-amber-400'
-                }`}
-              >
-                {tx.type === 'contribution' ? '+' : '-'}
-                {formatCurrency(tx.amount)}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

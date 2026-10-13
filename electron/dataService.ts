@@ -201,7 +201,7 @@ export class DataService {
   // ==================== TRANSACTIONS ====================
   getTransactions(filter?: { goal_id?: string; type?: string; from_date?: string; to_date?: string }) {
     let query = `
-      SELECT t.*, w.name as goal_name
+      SELECT t.*, w.name as goal_name, w.image_path as goal_image
       FROM transactions t
       LEFT JOIN wishlist_items w ON w.id = t.goal_id
       WHERE 1=1
@@ -271,7 +271,7 @@ export class DataService {
       }
 
       return this.db.prepare(`
-        SELECT t.*, w.name as goal_name
+        SELECT t.*, w.name as goal_name, w.image_path as goal_image
         FROM transactions t
         LEFT JOIN wishlist_items w ON w.id = t.goal_id
         WHERE t.id = ?
@@ -293,7 +293,7 @@ export class DataService {
     `).run(...values);
 
     return this.db.prepare(`
-      SELECT t.*, w.name as goal_name
+      SELECT t.*, w.name as goal_name, w.image_path as goal_image
       FROM transactions t
       LEFT JOIN wishlist_items w ON w.id = t.goal_id
       WHERE t.id = ?
@@ -357,7 +357,7 @@ export class DataService {
     
     // Recent transactions
     const recentTransactions = this.db.prepare(`
-      SELECT t.*, w.name as goal_name
+      SELECT t.*, w.name as goal_name, w.image_path as goal_image
       FROM transactions t
       LEFT JOIN wishlist_items w ON w.id = t.goal_id
       ORDER BY t.transaction_date DESC, t.created_at DESC
