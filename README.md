@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💎 Stashly
+#  Stashly
 
 ### *The Offline-First Budget Saving & Wishlist Tracker for Windows*
 
