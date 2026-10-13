@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lightning, ArrowCounterClockwise, ArrowUpRight, Plus, Minus } from '@phosphor-icons/react';
+import { X, ArrowUpRight, Plus, Minus } from '@phosphor-icons/react';
 import { formatCurrency, parseToCents, toLocalDateString } from '../../utils/calculations';
 import { WishlistItem, QuickSavePreset } from '../../types';
 import confetti from 'canvas-confetti';
@@ -38,16 +38,12 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
   const [note, setNote] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [lastCreatedId, setLastCreatedId] = useState<string | null>(null);
-  const [showUndoBanner, setShowUndoBanner] = useState<boolean>(false);
 
   useEffect(() => {
     if (isOpen) {
       setSelectedGoalId(preselectedGoalId || '');
       setDateStr(preselectedDate || toLocalDateString(new Date()));
       setError(null);
-      setShowUndoBanner(false);
-      setLastCreatedId(null);
     }
   }, [isOpen, preselectedGoalId, preselectedDate]);
 
@@ -83,7 +79,7 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const res = await onSave({
+      await onSave({
         goal_id: selectedGoalId || null,
         type,
         amount: amountCents,
@@ -91,16 +87,10 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
         note: note.trim() || undefined,
       });
 
-      if (res && res.id) {
-        setLastCreatedId(res.id);
-        setShowUndoBanner(true);
-        setNote('');
-        if (type === 'contribution') {
-          fireSuccessCelebration();
-        }
-      } else {
-        onClose();
+      if (type === 'contribution') {
+        fireSuccessCelebration();
       }
+      onClose();
     } catch (err: any) {
       setError(err?.message || 'Failed to save transaction');
     } finally {
@@ -108,28 +98,15 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
     }
   };
 
-  const handleUndo = async () => {
-    if (lastCreatedId && onUndoLast) {
-      await onUndoLast(lastCreatedId);
-      setShowUndoBanner(false);
-      setLastCreatedId(null);
-    }
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-2xl animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-[#0c0d12] border border-white/[0.09] rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/35 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="w-full max-w-lg bg-[#0c0d12]/75 backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div>
           {/* Header */}
           <div className="px-8 py-5 border-b border-white/[0.05] flex items-center justify-between">
-            <div className="flex items-center space-x-3.5">
-              <div className="w-9 h-9 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center text-emerald-400">
-                <Lightning size={17} weight="fill" />
-              </div>
-              <div>
-                <h3 className="font-editorial text-lg text-white font-normal tracking-tight">Quick Contribution.</h3>
-                <p className="text-[11px] text-neutral-400 font-normal">Record savings directly toward your goals</p>
-              </div>
+            <div>
+              <h3 className="font-editorial text-lg text-white font-normal tracking-tight">Contribution.</h3>
+              <p className="text-[11px] text-neutral-400 font-normal">Record savings directly toward your goals</p>
             </div>
             <button
               onClick={onClose}
@@ -138,20 +115,6 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
               <X size={16} />
             </button>
           </div>
-
-          {/* Undo Banner */}
-          {showUndoBanner && (
-            <div className="bg-emerald-500/10 border-b border-emerald-500/20 px-8 py-2.5 flex items-center justify-between text-[12px] text-emerald-300">
-              <span>Contribution recorded successfully!</span>
-              <button
-                onClick={handleUndo}
-                className="flex items-center space-x-1 font-semibold underline text-emerald-300 hover:text-white transition"
-              >
-                <ArrowCounterClockwise size={13} weight="bold" />
-                <span>Undo</span>
-              </button>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="p-8 space-y-5">
             {error && (
@@ -304,12 +267,9 @@ export const QuickSaveModal: React.FC<QuickSaveModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group flex items-center space-x-2 pl-6 pr-2.5 py-2 rounded-full bg-white text-black text-[12px] font-semibold hover:bg-neutral-200 active:scale-95 transition-all disabled:opacity-50"
+                className="px-6 py-2.5 rounded-full bg-white text-black text-[12px] font-semibold hover:bg-neutral-200 active:scale-95 transition-all disabled:opacity-50"
               >
                 <span>{isSubmitting ? 'Recording...' : 'Confirm Deposit'}</span>
-                <div className="w-6 h-6 rounded-full bg-black/10 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300">
-                  <ArrowUpRight size={11} weight="bold" />
-                </div>
               </button>
             </div>
           </form>

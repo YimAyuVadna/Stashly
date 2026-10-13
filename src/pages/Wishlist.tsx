@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Plus, Search, PiggyBank, Zap } from 'lucide-react';
-import { WishlistItem } from '../types';
+import { WishlistItem, Transaction } from '../types';
 import { formatCurrency, calculateDaysRemaining } from '../utils/calculations';
 
 interface WishlistPageProps {
   items: WishlistItem[];
+  transactions?: Transaction[];
   onOpenCreate: () => void;
   onSelect: (item: WishlistItem) => void;
   onQuickSave: (goalId: string) => void;
@@ -12,6 +13,7 @@ interface WishlistPageProps {
 
 export const WishlistPage: React.FC<WishlistPageProps> = ({
   items,
+  transactions,
   onOpenCreate,
   onSelect,
   onQuickSave,
@@ -21,7 +23,25 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('recent');
 
-  const filteredItems = items
+  // Augment items with live calculations from transactions if transactions provided
+  const augmentedItems = items.map((item) => {
+    if (!transactions) return item;
+    const goalTxs = transactions.filter((t) => t.goal_id === item.id);
+    const saved = goalTxs.reduce(
+      (acc, t) => acc + (t.type === 'contribution' ? t.amount : -t.amount),
+      0
+    );
+    const remaining = Math.max(0, item.target_amount - saved);
+    const progress = item.target_amount > 0 ? Math.round((saved / item.target_amount) * 1000) / 10 : 0;
+    return {
+      ...item,
+      saved_amount: saved,
+      remaining_amount: remaining,
+      progress_percentage: progress,
+    };
+  });
+
+  const filteredItems = augmentedItems
     .filter((item) => {
       const matchSearch =
         item.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -217,14 +237,27 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
                     {/* Days Until Complete Badge */}
                     <div className="mt-2.5 pt-2 border-t border-white/[0.04] flex items-center justify-between text-[10px]">
                       <span className="text-neutral-500 uppercase tracking-wider">Remaining Horizon</span>
-                      <span className="font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        {calculateDaysRemaining(
+                      {(() => {
+                        const horizon = calculateDaysRemaining(
                           item.remaining_amount || 0,
                           item.target_date,
                           item.created_at ? item.created_at.slice(0, 10) : undefined,
-                          item.saved_amount
-                        ).label}
-                      </span>
+                          item.saved_amount,
+                          item.planned_daily_rate
+                        );
+                        const hasContrib = (item.saved_amount || 0) > 0;
+                        return (
+                          <span
+                            className={`font-medium px-2 py-0.5 rounded-full border ${
+                              hasContrib
+                                ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                                : 'text-neutral-400 bg-white/[0.04] border-white/10'
+                            }`}
+                          >
+                            {horizon.label}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

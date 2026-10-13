@@ -119,18 +119,18 @@ export const TransactionsPage: React.FC<TransactionsPageProps> = ({
         </div>
       </div>
 
-      {/* Transaction List Table */}
+      {/* Transaction List Table - Fits smoothly with no horizontal scrollbar */}
       <div className="sq-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="w-full">
+          <table className="w-full table-fixed text-left text-xs">
             <thead className="bg-[#050608] border-b border-white/[0.06] text-neutral-400 uppercase font-medium text-[10px] tracking-wider">
               <tr>
-                <th className="px-6 py-4">Type</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4">Destination Item</th>
-                <th className="px-6 py-4">Note</th>
-                <th className="px-6 py-4 text-right">Amount</th>
-                <th className="px-6 py-4 text-center">Actions</th>
+                <th className="w-[120px] px-5 py-3.5">Type</th>
+                <th className="w-[95px] px-3 py-3.5">Date</th>
+                <th className="px-4 py-3.5">Destination Item</th>
+                <th className="w-[170px] px-3 py-3.5">Note</th>
+                <th className="w-[110px] px-4 py-3.5 text-right">Amount</th>
+                <th className="w-[80px] pl-2 pr-6 py-3.5 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
@@ -143,9 +143,9 @@ export const TransactionsPage: React.FC<TransactionsPageProps> = ({
               ) : (
                 filtered.map((t) => (
                   <tr key={t.id} className="hover:bg-white/[0.02] transition">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-5 py-3">
                       <span
-                        className={`inline-flex items-center space-x-1.5 px-3 py-0.5 rounded-full text-[10px] font-semibold ${
+                        className={`inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
                           t.type === 'contribution'
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
@@ -159,11 +159,11 @@ export const TransactionsPage: React.FC<TransactionsPageProps> = ({
                         <span className="capitalize">{t.type}</span>
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-neutral-300 font-medium whitespace-nowrap">
+                    <td className="px-3 py-3 text-neutral-300 font-medium">
                       {t.transaction_date}
                     </td>
-                    <td className="px-6 py-4 text-white font-medium whitespace-nowrap">
-                      <div className="flex items-center space-x-2.5">
+                    <td className="px-4 py-3 text-white font-medium">
+                      <div className="flex items-center space-x-2.5 min-w-0">
                         {(() => {
                           const itemImage =
                             t.goal_image ||
@@ -177,21 +177,36 @@ export const TransactionsPage: React.FC<TransactionsPageProps> = ({
                             />
                           ) : null;
                         })()}
-                        <span>{t.goal_name || 'General Savings Reserve'}</span>
+                        <span className="truncate">{t.goal_name || 'General Savings Reserve'}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-neutral-400 max-w-xs truncate">
-                      {t.note || '—'}
+                    <td className="px-3 py-3 text-neutral-200 font-normal">
+                      {t.note ? (
+                        <div className="relative group inline-block max-w-[160px]">
+                          <span className="block px-2.5 py-1 rounded-lg bg-white/[0.05] border border-white/10 text-neutral-200 text-[11px] leading-tight truncate cursor-pointer hover:border-emerald-500/40 hover:bg-white/[0.08] transition">
+                            {t.note}
+                          </span>
+                          {/* Floating Hover Tooltip */}
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 pointer-events-none w-max max-w-xs px-3 py-2 rounded-xl bg-[#0c0d12] border border-white/20 text-white text-[11px] shadow-2xl backdrop-blur-2xl">
+                            <p className="font-sans leading-relaxed text-neutral-200">
+                              {t.note}
+                            </p>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#0c0d12]" />
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-neutral-500">—</span>
+                      )}
                     </td>
                     <td
-                      className={`px-6 py-4 text-right font-semibold whitespace-nowrap ${
+                      className={`px-4 py-3 text-right font-semibold whitespace-nowrap ${
                         t.type === 'contribution' ? 'text-emerald-400' : 'text-amber-400'
                       }`}
                     >
                       {t.type === 'contribution' ? '+' : '-'}
                       {formatCurrency(t.amount)}
                     </td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                    <td className="pl-2 pr-6 py-3 text-center whitespace-nowrap">
                       <button
                         onClick={() => onDeleteTransaction(t.id)}
                         className="text-neutral-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition"

@@ -149,9 +149,9 @@ export class DataService {
     this.db.prepare(`
       INSERT INTO wishlist_items (
         id, name, category, brand, model, description, image_path, product_url,
-        target_amount, current_price, currency_code, priority, target_date, status,
+        target_amount, current_price, currency_code, priority, target_date, planned_daily_rate, status,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       data.name,
@@ -166,6 +166,7 @@ export class DataService {
       data.currency_code || 'USD',
       data.priority || 'medium',
       data.target_date || null,
+      data.planned_daily_rate || null,
       data.status || 'active',
       now,
       now

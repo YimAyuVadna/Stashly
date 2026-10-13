@@ -9,6 +9,7 @@ import {
 import { WishlistItem, Transaction } from '../types';
 import { formatCurrency, estimateCompletionDate, calculateDaysRemaining } from '../utils/calculations';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 
 interface WishlistDetailsProps {
   item: WishlistItem;
@@ -29,19 +30,27 @@ export const WishlistDetails: React.FC<WishlistDetailsProps> = ({
   onQuickSave,
   onDeleteTransaction,
 }) => {
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const goalTransactions = transactions.filter((t) => t.goal_id === item.id);
-  const totalSaved = item.saved_amount || 0;
-  const remaining = item.remaining_amount || 0;
-  const progress = item.progress_percentage || 0;
+  const totalSaved = goalTransactions.reduce(
+    (acc, t) => acc + (t.type === 'contribution' ? t.amount : -t.amount),
+    0
+  );
+  const remaining = Math.max(0, item.target_amount - totalSaved);
+  const progress = item.target_amount > 0 ? Math.round((totalSaved / item.target_amount) * 1000) / 10 : 0;
   const contributionCount = goalTransactions.length;
   const averageContribution = contributionCount > 0 ? Math.round(totalSaved / contributionCount) : 0;
 
+  const firstContribDate = goalTransactions.length > 0
+    ? [...goalTransactions].sort((a, b) => a.transaction_date.localeCompare(b.transaction_date))[0].transaction_date
+    : item.created_at ? item.created_at.slice(0, 10) : undefined;
+
   const estimatedDate = estimateCompletionDate(
     remaining,
-    item.created_at ? item.created_at.slice(0, 10) : undefined,
-    totalSaved
+    firstContribDate,
+    totalSaved,
+    item.planned_daily_rate
   );
 
   // Growth curve data
@@ -79,21 +88,11 @@ export const WishlistDetails: React.FC<WishlistDetailsProps> = ({
             <span>Edit Item</span>
           </button>
           <button
-            onClick={() => {
-              if (confirmDelete) {
-                onDelete(item.id);
-              } else {
-                setConfirmDelete(true);
-              }
-            }}
-            className={`flex items-center space-x-1.5 px-4 py-2 rounded-full border text-xs font-semibold transition ${
-              confirmDelete
-                ? 'bg-red-500 border-red-500 text-white'
-                : 'border-red-900/50 text-red-400 hover:bg-red-950/40'
-            }`}
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-full border border-red-900/50 text-red-400 hover:bg-red-950/40 text-xs font-semibold transition"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>{confirmDelete ? 'Confirm Delete?' : 'Delete'}</span>
+            <span>Delete</span>
           </button>
         </div>
       </div>
@@ -173,15 +172,35 @@ export const WishlistDetails: React.FC<WishlistDetailsProps> = ({
 
             {/* Days Until Complete Metric Highlight */}
             <div className="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs">
-              <span className="text-neutral-400">Estimated Horizon:</span>
-              <span className="text-emerald-400 font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                {calculateDaysRemaining(
+              <div className="flex items-center space-x-2">
+                <span className="text-neutral-400">Estimated Horizon:</span>
+                {item.planned_daily_rate && item.planned_daily_rate > 0 && (
+                  <span className="text-[10px] text-neutral-400 bg-white/[0.04] border border-white/10 px-2 py-0.5 rounded-md">
+                    Target pace: {formatCurrency(item.planned_daily_rate)}/day
+                  </span>
+                )}
+              </div>
+              {(() => {
+                const horizon = calculateDaysRemaining(
                   remaining,
                   item.target_date,
-                  item.created_at ? item.created_at.slice(0, 10) : undefined,
-                  totalSaved
-                ).label}
-              </span>
+                  firstContribDate,
+                  totalSaved,
+                  item.planned_daily_rate
+                );
+                const hasContrib = totalSaved > 0;
+                return (
+                  <span
+                    className={`font-semibold px-2.5 py-0.5 rounded-full border ${
+                      hasContrib
+                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                        : 'text-neutral-400 bg-white/[0.04] border-white/10'
+                    }`}
+                  >
+                    {horizon.label}
+                  </span>
+                );
+              })()}
             </div>
 
             {/* Progress bar */}
@@ -207,9 +226,8 @@ export const WishlistDetails: React.FC<WishlistDetailsProps> = ({
 
             <button
               onClick={() => onQuickSave(item.id)}
-              className="flex items-center space-x-2 px-6 py-2.5 rounded-full bg-white text-black font-semibold text-[12px] hover:bg-neutral-200 active:scale-95 transition shadow-lg shadow-white/5"
+              className="px-6 py-2.5 rounded-full bg-white text-black font-semibold text-[12px] hover:bg-neutral-200 active:scale-95 transition shadow-lg shadow-white/5"
             >
-              <Zap className="w-3.5 h-3.5 fill-black" />
               <span>Contribute to this Goal</span>
             </button>
           </div>
@@ -282,9 +300,25 @@ export const WishlistDetails: React.FC<WishlistDetailsProps> = ({
                   <p className="font-medium text-white">
                     {tx.type === 'contribution' ? 'Savings Deposit' : 'Withdrawal'}
                   </p>
-                  <p className="text-[11px] text-neutral-400">
-                    {tx.transaction_date} {tx.note ? `• "${tx.note}"` : ''}
-                  </p>
+                  <div className="flex items-center space-x-2 mt-0.5">
+                    <span className="text-[11px] text-neutral-400 font-normal">
+                      {tx.transaction_date}
+                    </span>
+                    {tx.note && (
+                      <div className="relative group inline-block max-w-[150px]">
+                        <span className="block px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 text-neutral-200 text-[10px] font-medium leading-none truncate cursor-pointer hover:border-emerald-500/40 hover:bg-white/[0.08] transition">
+                          {tx.note}
+                        </span>
+                        {/* Floating Hover Tooltip (like Heatmap info) */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 pointer-events-none w-max max-w-xs px-3 py-2 rounded-xl bg-[#0c0d12] border border-white/20 text-white text-[11px] shadow-2xl backdrop-blur-2xl">
+                          <p className="font-sans leading-relaxed text-neutral-200">
+                            {tx.note}
+                          </p>
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#0c0d12]" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <span
@@ -308,6 +342,22 @@ export const WishlistDetails: React.FC<WishlistDetailsProps> = ({
           </div>
         )}
       </div>
+
+      {/* Delete Item Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Item."
+        description={`Permanently delete "${item.name}" from your collection? Contributed transactions will be unlinked.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        requireTwoStep={true}
+        isDestructive={true}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          onDelete(item.id);
+        }}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 };

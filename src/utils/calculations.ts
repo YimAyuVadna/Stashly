@@ -121,19 +121,31 @@ export function calculateStreaks(savingDates: string[]): { currentStreak: number
 export function estimateCompletionDate(
   remainingCents: number,
   firstDateStr?: string,
-  totalSavedCents?: number
+  totalSavedCents?: number,
+  plannedDailyRateCents?: number
 ): string | null {
-  if (remainingCents <= 0) return 'Completed';
-  if (!firstDateStr || !totalSavedCents || totalSavedCents <= 0) return null;
+  const rem = Math.max(0, Number(remainingCents) || 0);
+  if (rem <= 0) return 'Completed';
 
-  const firstDate = new Date(firstDateStr + 'T00:00:00');
-  const now = new Date();
-  const diffDays = Math.max(1, Math.round((now.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)));
-  
-  const dailyRate = totalSavedCents / diffDays;
-  if (dailyRate <= 0) return null;
+  const plannedRate = plannedDailyRateCents != null ? Number(plannedDailyRateCents) : 0;
+  const totalSaved = totalSavedCents != null ? Number(totalSavedCents) : 0;
 
-  const daysNeeded = Math.ceil(remainingCents / dailyRate);
+  let daysNeeded: number | null = null;
+
+  // 1. If planned daily pace is set for this goal:
+  if (plannedRate > 0) {
+    daysNeeded = Math.ceil(rem / plannedRate);
+  } else if (totalSaved > 0 && firstDateStr) {
+    const firstDate = new Date(firstDateStr + 'T00:00:00');
+    const now = new Date();
+    const diffDays = Math.max(1, Math.round((now.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)));
+    const dailyRate = totalSaved / diffDays;
+    if (dailyRate > 0) {
+      daysNeeded = Math.ceil(rem / dailyRate);
+    }
+  }
+
+  if (daysNeeded === null) return null;
   if (daysNeeded > 3650) return '> 10 years'; // Too far out
 
   const targetDate = new Date();
@@ -143,21 +155,33 @@ export function estimateCompletionDate(
 
 /**
  * Calculates number of days remaining until goal is complete.
+ * If planned_daily_rate is set, calculates days needed based on planned pace.
  * If target_date is set by user, calculates days between now and target_date.
- * Otherwise, calculates days needed based on saving rate or daily goal amount.
+ * Otherwise, calculates days needed based on saving rate velocity or fallback quota.
  */
 export function calculateDaysRemaining(
   remainingCents: number,
   targetDateStr?: string,
   firstDateStr?: string,
   totalSavedCents?: number,
+  plannedDailyRateCents?: number,
   fallbackDailyGoalCents?: number
 ): { days: number | null; label: string } {
-  if (remainingCents <= 0) {
+  const rem = Math.max(0, Number(remainingCents) || 0);
+  const totalSaved = totalSavedCents != null ? Number(totalSavedCents) : 0;
+  const plannedRate = plannedDailyRateCents != null ? Number(plannedDailyRateCents) : 0;
+
+  if (rem <= 0) {
     return { days: 0, label: 'Goal Reached' };
   }
 
-  // 1. If explicit target date is set by the user:
+  // 1. If user set an explicit Planned Daily Pace for this item (e.g. $1.00/day):
+  if (plannedRate > 0) {
+    const needed = Math.ceil(rem / plannedRate);
+    return { days: needed, label: `${needed} days left` };
+  }
+
+  // 2. If explicit target date is set by the user:
   if (targetDateStr) {
     const target = new Date(targetDateStr + 'T00:00:00');
     const now = new Date();
@@ -169,22 +193,27 @@ export function calculateDaysRemaining(
     return { days: diffDays, label: `${diffDays} days left` };
   }
 
-  // 2. Otherwise calculate based on contribution velocity:
-  if (firstDateStr && totalSavedCents && totalSavedCents > 0) {
+  // 3. If there are contributions, calculate based on actual contribution velocity:
+  if (totalSaved > 0 && firstDateStr) {
     const firstDate = new Date(firstDateStr + 'T00:00:00');
     const now = new Date();
     const elapsedDays = Math.max(1, Math.round((now.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)));
-    const dailyRate = totalSavedCents / elapsedDays;
+    const dailyRate = totalSaved / elapsedDays;
     if (dailyRate > 0) {
-      const needed = Math.ceil(remainingCents / dailyRate);
+      const needed = Math.ceil(rem / dailyRate);
       if (needed <= 3650) {
         return { days: needed, label: `~${needed} days left` };
       }
     }
   }
 
-  // 3. Fallback to daily goal quota (e.g. at $5/day, $200 = 40 days left):
-  const dailyTarget = fallbackDailyGoalCents && fallbackDailyGoalCents > 0 ? fallbackDailyGoalCents : 500;
-  const daysAtDailyRate = Math.ceil(remainingCents / dailyTarget);
+  // If no planned daily rate and no contributions yet:
+  if (totalSaved <= 0) {
+    return { days: null, label: 'No contributions yet' };
+  }
+
+  // 4. Fallback based on daily goal quota when contributed:
+  const dailyTarget = fallbackDailyGoalCents && fallbackDailyGoalCents > 0 ? Number(fallbackDailyGoalCents) : 500;
+  const daysAtDailyRate = Math.ceil(rem / dailyTarget);
   return { days: daysAtDailyRate, label: `~${daysAtDailyRate} days left` };
 }

@@ -140,9 +140,8 @@ export const DailyGoals: React.FC<DailyGoalsProps> = ({
 
             <button
               onClick={onOpenQuickSave}
-              className="flex items-center space-x-2 px-5 py-2.5 rounded-full bg-white text-black font-semibold text-[12px] hover:bg-neutral-200 active:scale-95 transition shadow-lg"
+              className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-[12px] hover:bg-neutral-200 active:scale-95 transition shadow-lg"
             >
-              <Zap className="w-3.5 h-3.5 fill-black" />
               <span>Record Deposit</span>
             </button>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, QuickSavePreset } from '../types';
 import { parseToCents } from '../utils/calculations';
 import { clientApi } from '../services/clientApi';
+import { ConfirmModal } from '../components/common/ConfirmModal';
 
 interface SettingsPageProps {
   settings: Settings;
@@ -28,6 +29,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     (settings.weekly_goal_amount / 100).toFixed(2)
   );
   const [message, setMessage] = useState<string | null>(null);
+  const [isRestoreConfirmOpen, setIsRestoreConfirmOpen] = useState(false);
 
   useEffect(() => {
     setCurrency(settings.currency_code || 'USD');
@@ -62,14 +64,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
     }
   };
 
-  const handleRestoreBackup = async () => {
-    if (
-      window.confirm(
-        'Restoring a database backup will replace all current data. Make sure you have a backup of current data first. Proceed?'
-      )
-    ) {
-      await clientApi.restoreBackup();
-    }
+  const handleRestoreBackup = () => {
+    setIsRestoreConfirmOpen(true);
+  };
+
+  const handleConfirmRestore = async () => {
+    setIsRestoreConfirmOpen(false);
+    await clientApi.restoreBackup();
   };
 
   return (
@@ -238,6 +239,18 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
           Engineered for Windows with Electron, React, TypeScript, and SQLite.
         </p>
       </div>
+
+      {/* Custom Database Restore Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isRestoreConfirmOpen}
+        title="Restore SQLite Database."
+        description="Restoring a database backup will replace all current financial records and goals. Make sure you have backed up your current data first."
+        confirmLabel="Restore Database"
+        cancelLabel="Cancel"
+        isDestructive={true}
+        onConfirm={handleConfirmRestore}
+        onCancel={() => setIsRestoreConfirmOpen(false)}
+      />
     </div>
   );
 };

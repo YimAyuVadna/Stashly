@@ -184,6 +184,17 @@ html:not(.dark) {
   .bg-black\/80 {
     background-color: rgba(15, 23, 42, 0.45) !important;
   }
+  .bg-black\/35 {
+    background-color: rgba(15, 23, 42, 0.35) !important;
+  }
+
+  .confirm-modal-card {
+    background-color: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12) !important;
+  }
 
   /* Text colors: Crisp high-contrast Obsidian & Slate */
   .text-white {

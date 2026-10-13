@@ -3,6 +3,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Navbar } from './components/layout/Navbar';
 import { QuickSaveModal } from './components/quicksave/QuickSaveModal';
 import { WishlistFormModal } from './components/wishlist/WishlistFormModal';
+import { ConfirmModal } from './components/common/ConfirmModal';
 import { Dashboard } from './pages/Dashboard';
 import { WishlistPage } from './pages/Wishlist';
 import { WishlistDetails } from './pages/WishlistDetails';
@@ -41,6 +42,9 @@ export const App: React.FC = () => {
 
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [editingWishlistItem, setEditingWishlistItem] = useState<WishlistItem | null>(null);
+
+  // Custom delete confirmation modal state
+  const [deletingTxId, setDeletingTxId] = useState<string | null>(null);
 
   // Mobile / responsive sidebar toggle
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -153,9 +157,15 @@ export const App: React.FC = () => {
     await loadData();
   };
 
-  const handleDeleteTransaction = async (txId: string) => {
-    if (window.confirm('Delete this transaction? Balances will be recalculated.')) {
-      await clientApi.deleteTransaction(txId);
+  const handleDeleteTransaction = (txId: string) => {
+    setDeletingTxId(txId);
+  };
+
+  const handleConfirmDeleteTransaction = async () => {
+    if (deletingTxId) {
+      const id = deletingTxId;
+      setDeletingTxId(null);
+      await clientApi.deleteTransaction(id);
       await loadData();
     }
   };
@@ -300,6 +310,7 @@ export const App: React.FC = () => {
               <Dashboard
                 summary={dashboardSummary}
                 recentTransactions={transactions.slice(0, 8)}
+                transactions={transactions}
                 activeWishlist={wishlistItems.filter((w) => w.status === 'active').slice(0, 6)}
                 allWishlist={wishlistItems}
                 onOpenQuickSave={openQuickSave}
@@ -314,6 +325,7 @@ export const App: React.FC = () => {
             {currentPage === 'wishlist' && (
               <WishlistPage
                 items={wishlistItems}
+                transactions={transactions}
                 onOpenCreate={() => {
                   setEditingWishlistItem(null);
                   setIsWishlistModalOpen(true);
@@ -414,6 +426,19 @@ export const App: React.FC = () => {
         onClose={() => setIsWishlistModalOpen(false)}
         onSave={handleSaveWishlist}
         editItem={editingWishlistItem}
+      />
+
+      {/* Custom Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deletingTxId)}
+        title="Delete Record."
+        description="Permanently delete this record? Balances and historical savings progress will be recalculated."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        requireTwoStep={true}
+        isDestructive={true}
+        onConfirm={handleConfirmDeleteTransaction}
+        onCancel={() => setDeletingTxId(null)}
       />
     </div>
   );

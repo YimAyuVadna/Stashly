@@ -16,6 +16,7 @@ export interface WishlistItem {
   currency_code: string;
   priority: WishlistPriority;
   target_date?: string; // YYYY-MM-DD
+  planned_daily_rate?: number; // planned saving amount per day in cents (e.g. 100 for $1.00/day)
   status: WishlistStatus;
   created_at: string;
   updated_at: string;

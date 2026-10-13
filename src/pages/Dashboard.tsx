@@ -22,6 +22,7 @@ interface DashboardProps {
   recentTransactions: Transaction[];
   activeWishlist: WishlistItem[];
   allWishlist?: WishlistItem[];
+  transactions?: Transaction[];
   onOpenQuickSave: (goalId?: string) => void;
   onNavigate: (page: string) => void;
   onSelectWishlist: (item: WishlistItem) => void;
@@ -32,11 +33,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
   recentTransactions,
   activeWishlist,
   allWishlist,
+  transactions,
   onOpenQuickSave,
   onNavigate,
   onSelectWishlist,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Augment activeWishlist with live calculated figures if transactions available
+  const displayWishlist = React.useMemo(() => {
+    const txList = transactions || recentTransactions;
+    if (!txList) return activeWishlist;
+    return activeWishlist.map((item) => {
+      const goalTxs = txList.filter((t) => t.goal_id === item.id);
+      const saved = goalTxs.reduce(
+        (acc, t) => acc + (t.type === 'contribution' ? t.amount : -t.amount),
+        0
+      );
+      const remaining = Math.max(0, item.target_amount - saved);
+      const progress = item.target_amount > 0 ? Math.round((saved / item.target_amount) * 1000) / 10 : 0;
+      return {
+        ...item,
+        saved_amount: saved,
+        remaining_amount: remaining,
+        progress_percentage: progress,
+      };
+    });
+  }, [activeWishlist, transactions, recentTransactions]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -103,12 +126,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="mt-8 flex flex-wrap items-center gap-3.5">
             <button
               onClick={() => onOpenQuickSave()}
-              className="group flex items-center space-x-3 pl-6 pr-2.5 py-2 rounded-full bg-white text-black font-semibold text-[13px] hover:bg-neutral-200 active:scale-95 transition-all duration-300 shadow-xl shadow-white/10"
+              className="px-6 py-3 rounded-full bg-white text-black font-semibold text-[13px] hover:bg-neutral-200 active:scale-95 transition-all duration-300 shadow-xl shadow-white/10"
             >
               <span>Record Contribution</span>
-              <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300">
-                <ArrowUpRight size={14} weight="bold" />
-              </div>
             </button>
             <button
               onClick={() => onNavigate('heatmap')}
@@ -321,13 +341,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </button>
         </div>
 
-        {activeWishlist.length === 0 ? (
+        {displayWishlist.length === 0 ? (
           <div className="py-12 text-center text-neutral-500 text-xs">
             No items in your collection yet. Create an item to begin funding.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {activeWishlist.map((item) => (
+            {displayWishlist.map((item) => (
               <div
                 key={item.id}
                 onClick={() => onSelectWishlist(item)}
@@ -369,14 +389,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {/* Remaining Horizon / Days until completion badge */}
                   <div className="mt-2 pt-2 border-t border-white/[0.04] flex items-center justify-between text-[10px]">
                     <span className="text-neutral-500 uppercase tracking-wider">Remaining Horizon</span>
-                    <span className="font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      {calculateDaysRemaining(
+                    {(() => {
+                      const horizon = calculateDaysRemaining(
                         item.remaining_amount || 0,
                         item.target_date,
                         item.created_at ? item.created_at.slice(0, 10) : undefined,
-                        item.saved_amount
-                      ).label}
-                    </span>
+                        item.saved_amount,
+                        item.planned_daily_rate
+                      );
+                      const hasContrib = (item.saved_amount || 0) > 0;
+                      return (
+                        <span
+                          className={`font-medium px-2 py-0.5 rounded-full border ${
+                            hasContrib
+                              ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20'
+                              : 'text-neutral-400 bg-white/[0.04] border border-white/10'
+                          }`}
+                        >
+                          {horizon.label}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -427,9 +460,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <p className="font-medium text-white tracking-tight">
                       {tx.goal_name || 'General Capital Reserve'}
                     </p>
-                    <p className="text-[11px] text-neutral-400">
-                      {tx.transaction_date} {tx.note ? `• "${tx.note}"` : ''}
-                    </p>
+                    <div className="flex items-center space-x-2 mt-0.5">
+                      <span className="text-[11px] text-neutral-400 font-normal">
+                        {tx.transaction_date}
+                      </span>
+                      {tx.note && (
+                        <div className="relative group inline-block max-w-[150px]">
+                          <span className="block px-2 py-0.5 rounded-md bg-white/[0.06] border border-white/10 text-neutral-200 text-[10px] font-medium leading-none truncate cursor-pointer hover:border-emerald-500/40 hover:bg-white/[0.08] transition">
+                            {tx.note}
+                          </span>
+                          {/* Floating Hover Tooltip (like Heatmap info) */}
+                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 pointer-events-none w-max max-w-xs px-3 py-2 rounded-xl bg-[#0c0d12] border border-white/20 text-white text-[11px] shadow-2xl backdrop-blur-2xl">
+                            <p className="font-sans leading-relaxed text-neutral-200">
+                              {tx.note}
+                            </p>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#0c0d12]" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <span

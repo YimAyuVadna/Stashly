@@ -27,6 +27,7 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
   const [productUrl, setProductUrl] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [targetDate, setTargetDate] = useState('');
+  const [plannedDailyRateStr, setPlannedDailyRateStr] = useState('');
   const [imagePath, setImagePath] = useState('');
   const [status, setStatus] = useState<'active' | 'completed' | 'paused' | 'archived'>('active');
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,9 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
       setTargetAmountStr((editItem.target_amount / 100).toFixed(2));
       setCurrentPriceStr(
         editItem.current_price ? (editItem.current_price / 100).toFixed(2) : ''
+      );
+      setPlannedDailyRateStr(
+        editItem.planned_daily_rate ? (editItem.planned_daily_rate / 100).toFixed(2) : ''
       );
       setBrand(editItem.brand || '');
       setModel(editItem.model || '');
@@ -53,6 +57,7 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
       setCategory('Electronics');
       setTargetAmountStr('');
       setCurrentPriceStr('');
+      setPlannedDailyRateStr('');
       setBrand('');
       setModel('');
       setDescription('');
@@ -119,6 +124,7 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
         product_url: productUrl.trim() || undefined,
         priority,
         target_date: targetDate || undefined,
+        planned_daily_rate: plannedDailyRateStr ? parseToCents(plannedDailyRateStr) : undefined,
         image_path: imagePath || undefined,
         status,
       });
@@ -296,8 +302,8 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
             </div>
           </div>
 
-          {/* Priority & Target Date */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Priority, Target Date & Planned Daily Pace */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-[11px] uppercase tracking-wider font-medium text-neutral-400 mb-1.5">
                 Priority
@@ -311,6 +317,25 @@ export const WishlistFormModal: React.FC<WishlistFormModalProps> = ({
                 <option value="medium">Medium Priority</option>
                 <option value="low">Low Priority</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-[11px] uppercase tracking-wider font-medium text-neutral-400 mb-1.5">
+                Planned Daily Pace ($/day)
+              </label>
+              <input
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={plannedDailyRateStr}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9.]/g, '');
+                  const parts = val.split('.');
+                  const clean = parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : val;
+                  setPlannedDailyRateStr(clean);
+                }}
+                placeholder="1.00"
+                className="w-full bg-black/60 border border-white/10 focus:border-white/30 rounded-2xl px-4 py-2 text-[12px] text-white focus:outline-none cursor-text select-text"
+              />
             </div>
             <div>
               <label className="block text-[11px] uppercase tracking-wider font-medium text-neutral-400 mb-1.5">

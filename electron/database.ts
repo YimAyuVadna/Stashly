@@ -46,6 +46,7 @@ export function initializeDatabase(dbPath: string): Database.Database {
       currency_code TEXT NOT NULL DEFAULT 'USD',
       priority TEXT NOT NULL DEFAULT 'medium',
       target_date TEXT,
+      planned_daily_rate INTEGER, -- planned saving amount per day in cents
       status TEXT NOT NULL DEFAULT 'active',
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
@@ -82,6 +83,17 @@ export function initializeDatabase(dbPath: string): Database.Database {
       is_enabled INTEGER NOT NULL DEFAULT 1
     );
   `);
+
+  // Migration: Ensure planned_daily_rate exists on wishlist_items
+  try {
+    const tableInfo = db.prepare("PRAGMA table_info('wishlist_items')").all() as any[];
+    const hasCol = tableInfo.some((col: any) => col.name === 'planned_daily_rate');
+    if (!hasCol) {
+      db.prepare("ALTER TABLE wishlist_items ADD COLUMN planned_daily_rate INTEGER").run();
+    }
+  } catch (err) {
+    console.error('Migration error checking planned_daily_rate:', err);
+  }
 
   // Initial seed data if settings table is empty
   const hasSettings = db.prepare('SELECT COUNT(*) as count FROM settings').get() as { count: number };
