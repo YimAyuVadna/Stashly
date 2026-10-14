@@ -119,10 +119,10 @@ export const TransactionsPage: React.FC<TransactionsPageProps> = ({
         </div>
       </div>
 
-      {/* Transaction List Table - Fits smoothly with no horizontal scrollbar */}
+      {/* Transaction List Table - Responsive scroll wrapper for narrow screens */}
       <div className="sq-card overflow-hidden">
-        <div className="w-full">
-          <table className="w-full table-fixed text-left text-xs">
+        <div className="w-full overflow-x-auto">
+          <table className="w-full min-w-[580px] table-fixed text-left text-xs">
             <thead className="bg-[#050608] border-b border-white/[0.06] text-neutral-400 uppercase font-medium text-[10px] tracking-wider">
               <tr>
                 <th className="w-[120px] px-5 py-3.5">Type</th>

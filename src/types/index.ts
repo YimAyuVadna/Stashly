@@ -89,8 +89,9 @@ export interface DashboardSummary {
 
 export interface DayActivity {
   date: string; // YYYY-MM-DD
-  savedAmount: number; // cents
-  withdrawalAmount: number; // cents
+  savedAmount: number; // cents (contributions)
+  withdrawalAmount: number; // cents (withdrawals)
+  isNetNegative?: boolean; // true if withdrawals > deposits
   contributionCount: number;
   targetAmount: number;
   level: 0 | 1 | 2 | 3 | 4;

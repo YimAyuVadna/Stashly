@@ -39,8 +39,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 840,
-    minWidth: 1024,
-    minHeight: 700,
+    minWidth: 480,
+    minHeight: 400,
     title: 'Stashly — Budget Saving & Wishlist Tracker',
     backgroundColor: '#050505',
     icon: fs.existsSync(iconPath) ? iconPath : undefined,

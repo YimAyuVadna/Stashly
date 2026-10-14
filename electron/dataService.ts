@@ -430,10 +430,13 @@ export class DataService {
         else level = 1;
       }
 
+      const isNetNegative = r.withdrawal_amount > r.saved_amount;
+
       daysMap[r.transaction_date] = {
         date: r.transaction_date,
         savedAmount: netSaved,
         withdrawalAmount: r.withdrawal_amount,
+        isNetNegative,
         contributionCount: r.contribution_count,
         targetAmount: dailyTarget,
         level,

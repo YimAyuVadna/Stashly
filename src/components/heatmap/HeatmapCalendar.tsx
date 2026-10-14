@@ -45,8 +45,11 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({
   const firstDayOfWeek = getDay(start);
   const leadingBlanks = Array.from({ length: firstDayOfWeek });
 
-  // Luxury emerald precision scale on OLED black
-  const getLevelColor = (level: number) => {
+  // Luxury emerald precision scale on OLED black, red for net negative (withdrawals > deposits)
+  const getLevelColor = (level: number, activity?: DayActivity) => {
+    if (activity && activity.isNetNegative) {
+      return 'bg-red-500 border-red-400 shadow-md shadow-red-500/40';
+    }
     switch (level) {
       case 4:
         return 'bg-emerald-400 border-emerald-300 shadow-md shadow-emerald-400/30';
@@ -170,7 +173,8 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({
                       });
                     }}
                     className={`w-3.5 h-3.5 rounded-[3px] border transition-transform duration-150 focus:outline-none ${getLevelColor(
-                      level
+                      level,
+                      activity
                     )} ${
                       isCurrentToday ? 'ring-1 ring-white ring-offset-1 ring-offset-black' : ''
                     } hover:scale-125 hover:z-10`}
@@ -189,16 +193,23 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({
           <span>Click any square to inspect details</span>
         </div>
 
-        <div className="flex items-center space-x-2 font-sans">
-          <span>Less</span>
-          <div className="flex items-center space-x-1">
-            <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(0)}`} />
-            <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(1)}`} />
-            <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(2)}`} />
-            <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(3)}`} />
-            <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(4)}`} />
+        <div className="flex flex-wrap items-center gap-4 font-sans">
+          <div className="flex items-center space-x-1.5">
+            <div className="w-3 h-3 rounded-[2px] bg-red-500 border border-red-400" />
+            <span className="text-red-400">Net Withdrawal</span>
           </div>
-          <span>Goal Reached</span>
+
+          <div className="flex items-center space-x-2">
+            <span>Less</span>
+            <div className="flex items-center space-x-1">
+              <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(0)}`} />
+              <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(1)}`} />
+              <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(2)}`} />
+              <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(3)}`} />
+              <div className={`w-3 h-3 rounded-[2px] border ${getLevelColor(4)}`} />
+            </div>
+            <span>Goal Reached</span>
+          </div>
         </div>
       </div>
 
@@ -223,9 +234,16 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({
               {format(new Date(hoveredDay.dateStr + 'T00:00:00'), 'EEEE, MMMM d, yyyy')}
             </p>
             <div className="mt-1.5 space-y-0.5 text-[11px] font-sans">
-              <p className="text-emerald-400 font-medium">
-                Saved: {formatCurrency(hoveredDay.activity?.savedAmount || 0)}
+              <p className={hoveredDay.activity?.isNetNegative ? 'text-red-400 font-medium' : 'text-emerald-400 font-medium'}>
+                {hoveredDay.activity?.isNetNegative
+                  ? `Net: -${formatCurrency((hoveredDay.activity?.withdrawalAmount || 0) - (hoveredDay.activity?.savedAmount || 0))}`
+                  : `Saved: ${formatCurrency(hoveredDay.activity?.savedAmount || 0)}`}
               </p>
+              {hoveredDay.activity?.withdrawalAmount ? (
+                <p className="text-amber-400/90">
+                  Withdrawn: {formatCurrency(hoveredDay.activity.withdrawalAmount)}
+                </p>
+              ) : null}
               <p className="text-neutral-400">
                 Contributions: {hoveredDay.activity?.contributionCount || 0}
               </p>
@@ -234,10 +252,20 @@ export const HeatmapCalendar: React.FC<HeatmapCalendarProps> = ({
               </p>
               <p
                 className={`font-semibold ${
-                  hoveredDay.activity?.reachedTarget ? 'text-emerald-300' : 'text-neutral-400'
+                  hoveredDay.activity?.isNetNegative
+                    ? 'text-red-400'
+                    : hoveredDay.activity?.reachedTarget
+                    ? 'text-emerald-300'
+                    : 'text-neutral-400'
                 }`}
               >
-                Status: {hoveredDay.activity?.reachedTarget ? 'Target Achieved' : (hoveredDay.activity?.savedAmount ? 'In Progress' : 'No activity')}
+                Status: {hoveredDay.activity?.isNetNegative
+                  ? 'Withdrawals Exceeded'
+                  : hoveredDay.activity?.reachedTarget
+                  ? 'Target Achieved'
+                  : hoveredDay.activity?.savedAmount
+                  ? 'In Progress'
+                  : 'No activity'}
               </p>
             </div>
             {/* Arrow indicator */}

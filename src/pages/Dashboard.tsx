@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import {
   PiggyBank,
   ArrowUpRight,
-  Lightning,
 } from '@phosphor-icons/react';
 import { formatCurrency, calculateDaysRemaining } from '../utils/calculations';
 import { DashboardSummary, WishlistItem, Transaction } from '../types';
@@ -315,7 +314,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             onClick={() => onOpenQuickSave()}
             className="w-full py-3 rounded-full bg-white text-black font-semibold text-[12px] hover:bg-neutral-200 active:scale-95 transition-all shadow-lg shadow-white/5 flex items-center justify-center space-x-2"
           >
-            <Lightning size={14} weight="fill" />
             <span>
               {summary.todayRemaining > 0
                 ? `Save Remaining ${formatCurrency(summary.todayRemaining)}`
@@ -346,7 +344,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             No items in your collection yet. Create an item to begin funding.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {displayWishlist.map((item) => (
               <div
                 key={item.id}

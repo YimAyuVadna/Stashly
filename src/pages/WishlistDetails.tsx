@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ArrowLeft,
-  Zap,
   Edit2,
   Trash2,
   PiggyBank,

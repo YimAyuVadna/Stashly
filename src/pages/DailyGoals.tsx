@@ -7,7 +7,7 @@ import {
   isToday,
   isSameDay,
 } from 'date-fns';
-import { Zap, Award } from 'lucide-react';
+import { Award } from 'lucide-react';
 import { Settings, Transaction } from '../types';
 import { formatCurrency, toLocalDateString } from '../utils/calculations';
 

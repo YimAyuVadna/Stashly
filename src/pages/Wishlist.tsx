@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, PiggyBank, Zap } from 'lucide-react';
+import { Plus, Search, PiggyBank } from 'lucide-react';
 import { WishlistItem, Transaction } from '../types';
 import { formatCurrency, calculateDaysRemaining } from '../utils/calculations';
 
@@ -64,7 +64,7 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
   const categories = Array.from(new Set(items.map((i) => i.category))).filter(Boolean);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="space-y-8 w-full max-w-[1700px] mx-auto pb-12">
       {/* Editorial Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -161,7 +161,7 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filteredItems.map((item) => (
             <div
               key={item.id}
@@ -271,9 +271,8 @@ export const WishlistPage: React.FC<WishlistPageProps> = ({
                   </button>
                   <button
                     onClick={() => onQuickSave(item.id)}
-                    className="px-4 py-2 rounded-xl bg-white text-black font-semibold text-[12px] hover:bg-neutral-200 active:scale-95 transition flex items-center space-x-1.5 shadow-sm"
+                    className="px-4 py-2 rounded-xl bg-white text-black font-semibold text-[12px] hover:bg-neutral-200 active:scale-95 transition flex items-center justify-center shadow-sm"
                   >
-                    <Zap className="w-3 h-3 fill-black" />
                     <span>Deposit</span>
                   </button>
                 </div>

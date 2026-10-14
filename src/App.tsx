@@ -305,7 +305,7 @@ export const App: React.FC = () => {
 
         {/* Scrollable Viewport */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-7 lg:p-10">
-          <div key={currentPage} className="max-w-7xl mx-auto page-fade-in">
+          <div key={currentPage} className="w-full max-w-[1700px] mx-auto page-fade-in">
             {currentPage === 'dashboard' && (
               <Dashboard
                 summary={dashboardSummary}
